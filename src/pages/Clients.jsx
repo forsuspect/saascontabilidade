@@ -372,7 +372,7 @@ const Clients = () => {
 
   const fetchClients = async () => {
     try {
-      const data = await dbService.clients.getAll();
+      const data = await dbService.clients.getAll(profile);
       setClients(data);
       if (data.length > 0 && !selectedClient) {
         setSelectedClient(data[0]);
@@ -385,7 +385,7 @@ const Clients = () => {
 
   const fetchFiles = async (clientId) => {
     try {
-      const allFiles = await dbService.documents.getAll();
+      const allFiles = await dbService.documents.getAll(profile);
       const clientFiles = allFiles.filter(f => f.client_id === clientId);
       setFiles(clientFiles);
     } catch (err) {

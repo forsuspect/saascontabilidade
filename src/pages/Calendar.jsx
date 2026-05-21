@@ -225,7 +225,7 @@ const Calendar = () => {
 
   const fetchEvents = async () => {
     try {
-      const data = await dbService.events.getAll();
+      const data = await dbService.events.getAll(profile);
       setEvents(data);
     } catch (err) {
       toast.error('Erro ao coletar compromissos da agenda.');

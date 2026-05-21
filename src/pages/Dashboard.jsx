@@ -205,10 +205,10 @@ const Dashboard = () => {
         setLoading(true);
         
         // Fetch all resources concurrently
-        const clients = await dbService.clients.getAll();
-        const financials = await dbService.financial.getAll();
-        const tasks = await dbService.tasks.getAll();
-        const events = await dbService.events.getAll();
+        const clients = await dbService.clients.getAll(profile);
+        const financials = await dbService.financial.getAll(profile);
+        const tasks = await dbService.tasks.getAll(profile);
+        const events = await dbService.events.getAll(profile);
         
         let logs = [];
         if (['admin', 'developer', 'owner'].includes(profile?.role)) {

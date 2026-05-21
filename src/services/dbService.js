@@ -397,11 +397,15 @@ export const dbService = {
   // CLIENTS SERVICES
   // ==========================================
   clients: {
-    getAll: async () => {
+    getAll: async (profile = null) => {
       let mergedData = [];
       if (isSupabaseConfigured && supabase) {
         try {
-          const { data, error } = await supabase.from('clients').select('*').order('name', { ascending: true });
+          let query = supabase.from('clients').select('*').order('name', { ascending: true });
+          if (profile && !['developer', 'owner'].includes(profile.role)) {
+            query = query.eq('created_by', profile.id);
+          }
+          const { data, error } = await query;
           if (error) throw error;
           mergedData = [...data];
         } catch (err) {
@@ -412,9 +416,15 @@ export const dbService = {
       const localData = getLocal('saas_clients');
       localData.forEach(localItem => {
         if (!mergedData.some(m => m.id === localItem.id)) {
-          mergedData.push(localItem);
+          if (!profile || ['developer', 'owner'].includes(profile.role) || localItem.created_by === profile.id) {
+            mergedData.push(localItem);
+          }
         }
       });
+      
+      if (profile && !['developer', 'owner'].includes(profile.role)) {
+        mergedData = mergedData.filter(item => item.created_by === profile.id);
+      }
       
       return mergedData.sort((a, b) => a.name.localeCompare(b.name));
     },
@@ -500,12 +510,17 @@ export const dbService = {
   // DOCUMENTS / STORAGE SERVICES
   // ==========================================
   documents: {
-    getAll: async () => {
+    getAll: async (profile = null) => {
+      let mergedData = [];
       if (isSupabaseConfigured && supabase) {
         try {
-          const { data, error } = await supabase.from('client_files').select('*, clients(name)').order('uploaded_at', { ascending: false });
+          let query = supabase.from('client_files').select('*, clients(name)').order('uploaded_at', { ascending: false });
+          if (profile && !['developer', 'owner'].includes(profile.role)) {
+            query = query.eq('uploaded_by', profile.id);
+          }
+          const { data, error } = await query;
           if (error) throw error;
-          return data;
+          mergedData = [...data];
         } catch (err) {
           console.warn("Supabase documents.getAll failed, using local fallback:", err.message);
         }
@@ -513,13 +528,24 @@ export const dbService = {
       
       const files = getLocal('saas_files');
       const clients = getLocal('saas_clients');
-      return files.map(f => {
-        const client = clients.find(c => c.id === f.client_id);
-        return {
-          ...f,
-          clients: client ? { name: client.name } : { name: 'Sem cliente' }
-        };
-      }).sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
+      
+      files.forEach(f => {
+        if (!mergedData.some(m => m.id === f.id)) {
+          if (!profile || ['developer', 'owner'].includes(profile.role) || f.uploaded_by === profile.id) {
+            const client = clients.find(c => c.id === f.client_id);
+            mergedData.push({
+              ...f,
+              clients: client ? { name: client.name } : { name: 'Sem cliente' }
+            });
+          }
+        }
+      });
+      
+      if (profile && !['developer', 'owner'].includes(profile.role)) {
+        mergedData = mergedData.filter(item => item.uploaded_by === profile.id);
+      }
+      
+      return mergedData.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
     },
 
     upload: async (clientId, file, creatorProfile) => {
@@ -630,11 +656,15 @@ export const dbService = {
   // FINANCIAL SERVICES
   // ==========================================
   financial: {
-    getAll: async () => {
+    getAll: async (profile = null) => {
       let mergedData = [];
       if (isSupabaseConfigured && supabase) {
         try {
-          const { data, error } = await supabase.from('financial_transactions').select('*').order('date', { ascending: false });
+          let query = supabase.from('financial_transactions').select('*').order('date', { ascending: false });
+          if (profile && !['developer', 'owner'].includes(profile.role)) {
+            query = query.eq('created_by', profile.id);
+          }
+          const { data, error } = await query;
           if (error) throw error;
           mergedData = [...data];
         } catch (err) {
@@ -645,9 +675,15 @@ export const dbService = {
       const localData = getLocal('saas_financials');
       localData.forEach(localItem => {
         if (!mergedData.some(m => m.id === localItem.id)) {
-          mergedData.push(localItem);
+          if (!profile || ['developer', 'owner'].includes(profile.role) || localItem.created_by === profile.id) {
+            mergedData.push(localItem);
+          }
         }
       });
+      
+      if (profile && !['developer', 'owner'].includes(profile.role)) {
+        mergedData = mergedData.filter(item => item.created_by === profile.id);
+      }
       
       return mergedData.sort((a, b) => new Date(b.date) - new Date(a.date));
     },
@@ -809,11 +845,15 @@ export const dbService = {
   // EVENTS / AGENDA SERVICES
   // ==========================================
   events: {
-    getAll: async () => {
+    getAll: async (profile = null) => {
       let mergedData = [];
       if (isSupabaseConfigured && supabase) {
         try {
-          const { data, error } = await supabase.from('events').select('*').order('start_time', { ascending: true });
+          let query = supabase.from('events').select('*').order('start_time', { ascending: true });
+          if (profile && !['developer', 'owner'].includes(profile.role)) {
+            query = query.eq('created_by', profile.id);
+          }
+          const { data, error } = await query;
           if (error) throw error;
           mergedData = [...data];
         } catch (err) {
@@ -824,9 +864,15 @@ export const dbService = {
       const localData = getLocal('saas_events');
       localData.forEach(localItem => {
         if (!mergedData.some(m => m.id === localItem.id)) {
-          mergedData.push(localItem);
+          if (!profile || ['developer', 'owner'].includes(profile.role) || localItem.created_by === profile.id) {
+            mergedData.push(localItem);
+          }
         }
       });
+      
+      if (profile && !['developer', 'owner'].includes(profile.role)) {
+        mergedData = mergedData.filter(item => item.created_by === profile.id);
+      }
       
       return mergedData.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
     },
@@ -906,11 +952,15 @@ export const dbService = {
   // KANBAN / TASKS SERVICES
   // ==========================================
   tasks: {
-    getAll: async () => {
+    getAll: async (profile = null) => {
       let mergedData = [];
       if (isSupabaseConfigured && supabase) {
         try {
-          const { data, error } = await supabase.from('tasks').select('*').order('created_at', { ascending: true });
+          let query = supabase.from('tasks').select('*').order('created_at', { ascending: true });
+          if (profile && !['developer', 'owner'].includes(profile.role)) {
+            query = query.or(`created_by.eq.${profile.id},assignee_id.eq.${profile.id}`);
+          }
+          const { data, error } = await query;
           if (error) throw error;
           mergedData = [...data];
         } catch (err) {
@@ -921,9 +971,15 @@ export const dbService = {
       const localData = getLocal('saas_tasks');
       localData.forEach(localItem => {
         if (!mergedData.some(m => m.id === localItem.id)) {
-          mergedData.push(localItem);
+          if (!profile || ['developer', 'owner'].includes(profile.role) || localItem.created_by === profile.id || localItem.assignee_id === profile.id) {
+            mergedData.push(localItem);
+          }
         }
       });
+      
+      if (profile && !['developer', 'owner'].includes(profile.role)) {
+        mergedData = mergedData.filter(item => item.created_by === profile.id || item.assignee_id === profile.id);
+      }
       
       return mergedData;
     },

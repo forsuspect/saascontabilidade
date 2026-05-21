@@ -247,7 +247,7 @@ const Kanban = () => {
   const fetchTasksAndUsers = async () => {
     try {
       setLoading(true);
-      const allTasks = await dbService.tasks.getAll();
+      const allTasks = await dbService.tasks.getAll(profile);
       const allUsers = await dbService.admin.getUsers();
       setTasks(allTasks);
       setUsers(allUsers);

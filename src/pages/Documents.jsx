@@ -199,8 +199,8 @@ const Documents = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      let docs = await dbService.documents.getAll();
-      const clis = await dbService.clients.getAll();
+      let docs = await dbService.documents.getAll(profile);
+      const clis = await dbService.clients.getAll(profile);
       
       if (profile?.role === 'client') {
         docs = docs.filter(d => d.client_id === 'cli-default' || d.clients?.name === 'Cliente Gold');
@@ -236,7 +236,7 @@ const Documents = () => {
     try {
       const uploaded = await dbService.documents.upload(selectedClientId, file, profile);
       // Re-fetch all documents to reflect client name relations
-      const docs = await dbService.documents.getAll();
+      const docs = await dbService.documents.getAll(profile);
       setDocuments(docs);
       toast.success(`Arquivo ${file.name} arquivado com sucesso.`);
     } catch (err) {

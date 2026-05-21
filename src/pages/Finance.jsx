@@ -188,7 +188,7 @@ const Finance = () => {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const data = await dbService.financial.getAll();
+      const data = await dbService.financial.getAll(profile);
       setTransactions(data);
     } catch (err) {
       toast.error('Erro ao buscar transações financeiras.');
