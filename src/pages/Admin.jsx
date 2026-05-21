@@ -23,9 +23,12 @@ const AdminWorkspace = styled.div`
   display: grid;
   grid-template-columns: 240px 1fr;
   gap: 24px;
+  width: 100%;
+  min-width: 0;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 `;
 
@@ -39,6 +42,12 @@ const TabMenu = styled.div`
   border-radius: 12px;
   padding: 16px;
   height: fit-content;
+  min-width: 0;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    padding: 12px;
+  }
 `;
 
 const TabBtn = styled.button`
@@ -69,6 +78,14 @@ const ContentPanel = styled.div`
   padding: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   min-height: 480px;
+  min-width: 0;
+  width: 100%;
+  overflow-x: hidden;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    border-radius: 12px;
+  }
 `;
 
 const ViewHeader = styled.div`
@@ -78,6 +95,27 @@ const ViewHeader = styled.div`
   margin-bottom: 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   padding-bottom: 16px;
+  gap: 16px;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 20px;
+  }
+`;
+
+const HeaderActions = styled.div`
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
 `;
 
 const ViewTitle = styled.h3`
@@ -88,6 +126,12 @@ const ViewTitle = styled.h3`
   align-items: center;
   gap: 10px;
   color: var(--text-white);
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    flex-wrap: wrap;
+  }
 `;
 
 const LogTerminal = styled.div`
@@ -129,24 +173,37 @@ const ActionButton = styled.button`
   font-weight: 500;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
 
   &:hover {
     background: ${props => props.$danger ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)'};
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 0.85rem;
   }
 `;
 
 const SearchBox = styled.div`
   position: relative;
+  flex: 1;
+  min-width: 0;
   
   input {
     width: 240px;
+    max-width: 100%;
     background: rgba(10, 10, 12, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.06);
     padding: 8px 12px 8px 36px;
     border-radius: 6px;
     color: var(--text-white);
     font-size: 0.85rem;
+    box-sizing: border-box;
   }
 
   svg {
@@ -155,6 +212,14 @@ const SearchBox = styled.div`
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+
+    input {
+      width: 100%;
+    }
   }
 `;
 
@@ -172,6 +237,13 @@ const UserItem = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 `;
 
 const UserBadge = styled.span`
@@ -231,18 +303,32 @@ const RegisterForm = styled.form`
   flex-direction: column;
   gap: 16px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  min-width: 0;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
 `;
 
 const FormRow = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 `;
 
 const FormField = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 
   label {
     font-size: 0.75rem;
@@ -252,6 +338,8 @@ const FormField = styled.div`
   }
 
   input, select {
+    width: 100%;
+    min-width: 0;
     background: rgba(14, 14, 18, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 8px;
@@ -260,10 +348,37 @@ const FormField = styled.div`
     font-size: 0.85rem;
     outline: none;
     transition: all 0.2s ease;
+    box-sizing: border-box;
 
     &:focus {
       border-color: var(--wine-red-light);
     }
+  }
+`;
+
+const FormActions = styled.div`
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    flex-direction: column-reverse;
+    gap: 10px;
+    margin-top: 4px;
+  }
+`;
+
+const RegisterTitle = styled.h4`
+  font-family: var(--font-display);
+  color: var(--text-white);
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+    margin-bottom: 4px;
   }
 `;
 
@@ -293,6 +408,13 @@ const ModalContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow-x: hidden;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
 `;
 
 const ToggleSwitch = styled.label`
@@ -544,7 +666,7 @@ const Admin = () => {
                 Auditoria de Eventos do Sistema
               </ViewTitle>
 
-              <div style={{ display: 'flex', gap: 12 }}>
+              <HeaderActions>
                 <SearchBox>
                   <Search size={14} />
                   <input 
@@ -560,7 +682,7 @@ const Admin = () => {
                 <ActionButton $danger onClick={handleClearLogs}>
                   <Trash2 size={14} /> Limpar Logs
                 </ActionButton>
-              </div>
+              </HeaderActions>
             </ViewHeader>
 
             {loading ? (
@@ -591,7 +713,7 @@ const Admin = () => {
                 Níveis de Acesso e Contas Ativas
               </ViewTitle>
 
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <HeaderActions>
                 <SearchBox>
                   <Search size={14} />
                   <input 
@@ -602,14 +724,14 @@ const Admin = () => {
                   />
                 </SearchBox>
                 <ActionButton onClick={() => setShowCreateForm(!showCreateForm)} style={{ background: showCreateForm ? 'rgba(255, 255, 255, 0.05)' : 'rgba(139, 30, 47, 0.15)', borderColor: 'rgba(139, 30, 47, 0.3)', color: 'var(--text-white)' }}>
-                  <UserPlus size={14} /> {showCreateForm ? 'Fechar Form' : 'Novo Usuário'}
+                  <UserPlus size={14} /> {showCreateForm ? 'Fechar Formulário' : 'Novo Usuário'}
                 </ActionButton>
-              </div>
+              </HeaderActions>
             </ViewHeader>
 
             {showCreateForm && (
               <RegisterForm onSubmit={handleCreateUser}>
-                <h4 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-white)', fontSize: '0.95rem', marginBottom: 8 }}>Cadastrar Novo Acesso</h4>
+                <RegisterTitle>Cadastrar Novo Acesso</RegisterTitle>
                 <FormRow>
                   <FormField>
                     <label>Nome Completo</label>
@@ -655,10 +777,10 @@ const Admin = () => {
                     </select>
                   </FormField>
                 </FormRow>
-                <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 8 }}>
+                <FormActions>
                   <ActionButton type="button" onClick={() => setShowCreateForm(false)}>Cancelar</ActionButton>
                   <ActionButton type="submit" style={{ background: 'var(--wine-red-light)', color: 'var(--text-white)', borderColor: 'rgba(139,30,47,0.3)' }}>Salvar Usuário</ActionButton>
-                </div>
+                </FormActions>
               </RegisterForm>
             )}
 
@@ -840,12 +962,12 @@ const Admin = () => {
                 />
               </FormField>
               
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 10 }}>
+              <FormActions style={{ marginTop: 10 }}>
                 <ActionButton type="button" onClick={() => setEditingUser(null)}>Cancelar</ActionButton>
                 <ActionButton type="submit" style={{ background: 'var(--wine-red-light)', color: 'var(--text-white)', borderColor: 'rgba(139,30,47,0.3)' }}>
                   Salvar Alterações
                 </ActionButton>
-              </div>
+              </FormActions>
             </form>
           </ModalContent>
         </ModalOverlay>
