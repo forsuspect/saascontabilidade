@@ -9,6 +9,7 @@ import { logSystemAction } from './services/dbService';
 // Components & Layout
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import MobilePerfInit from './components/MobilePerfInit';
 
 // Pages
 import Login from './pages/Login';
@@ -249,6 +250,7 @@ const App = () => {
   return (
     <ErrorBoundary>
       <BrowserRouter>
+        <MobilePerfInit />
         <ToastProvider>
           <AuthProvider>
             <AppContent />

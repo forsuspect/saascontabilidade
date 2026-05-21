@@ -135,6 +135,24 @@ h1, h2, h3, h4, h5, h6 {
   animation: grid-movement 25s linear infinite;
   pointer-events: none;
   z-index: 0;
+  will-change: auto;
+}
+
+/* Mobile / reduced motion: menos animação de fundo e transições mais rápidas */
+html[data-fast-motion] .animated-grid {
+  animation: none;
+  opacity: 0.35;
+}
+
+html[data-fast-motion] .hologram-hud::after {
+  display: none;
+}
+
+html[data-fast-motion] input,
+html[data-fast-motion] select,
+html[data-fast-motion] textarea,
+html[data-fast-motion] button {
+  transition-duration: 0.12s !important;
 }
 
 .hologram-hud {
@@ -158,7 +176,7 @@ h1, h2, h3, h4, h5, h6 {
 input, select, textarea {
   outline: none;
   font-size: 0.95rem;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -171,5 +189,5 @@ button {
   cursor: pointer;
   border: none;
   background: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cardEnter, modalPop } from '../utils/motion';
+import { mobileGlassFix, mobileSolidPanel } from '../styles/glass';
 import { dbService } from '../services/dbService';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -45,6 +47,9 @@ const Column = styled.div`
   @media (max-width: 1024px) {
     height: 400px;
   }
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const ColumnHeader = styled.div`
@@ -173,6 +178,8 @@ const ModalOverlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+
+  ${mobileGlassFix}
 `;
 
 const ModalContent = styled(motion.div)`
@@ -356,15 +363,11 @@ const Kanban = () => {
                 </ColumnHeader>
 
                 <CardsContainer>
-                  <AnimatePresence mode="popLayout">
+                  <AnimatePresence>
                     {columnTasks.map(task => (
                       <TaskCard
                         key={task.id}
-                        layout
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ duration: 0.2 }}
+                        {...cardEnter()}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <PriorityBadge $priority={task.priority}>{task.priority}</PriorityBadge>
@@ -417,8 +420,7 @@ const Kanban = () => {
         <ModalOverlay onClick={() => setIsModalOpen(false)}>
           <ModalContent 
             onClick={(e) => e.stopPropagation()}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            {...modalPop()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem' }}>Nova Tarefa Operacional</h3>

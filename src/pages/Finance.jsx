@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+import { mobileGlassFix, mobileSolidPanel } from '../styles/glass';
 import { dbService } from '../services/dbService';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -34,6 +34,9 @@ const FormPanel = styled.div`
   padding: 24px;
   height: fit-content;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const ListPanel = styled.div`
@@ -43,6 +46,9 @@ const ListPanel = styled.div`
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const KPIHeader = styled.div`

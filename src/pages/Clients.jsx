@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
+import { slideX, modalPop } from '../utils/motion';
+import { mobileGlassFix, mobileSolidPanel } from '../styles/glass';
 import { dbService } from '../services/dbService';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -51,6 +53,9 @@ const SidebarPanel = styled.div`
     height: auto;
     max-height: 320px;
   }
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const SearchBox = styled.div`
@@ -140,6 +145,9 @@ const DetailsPanel = styled(motion.div)`
     padding: 20px 16px;
     gap: 16px;
   }
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const DetailHeader = styled.div`
@@ -293,6 +301,8 @@ const ModalOverlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+
+  ${mobileGlassFix}
 `;
 
 const ModalContent = styled(motion.div)`
@@ -562,10 +572,7 @@ const Clients = () => {
         {selectedClient ? (
           <DetailsPanel
             key={selectedClient.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
+            {...slideX(1)}
           >
             <DetailHeader>
               <div>
@@ -663,8 +670,7 @@ const Clients = () => {
         <ModalOverlay onClick={() => setIsModalOpen(false)}>
           <ModalContent 
             onClick={(e) => e.stopPropagation()}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            {...modalPop()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem' }}>Novo Cliente SaaS</h3>

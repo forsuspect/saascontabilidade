@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
 import { dbService } from '../services/dbService';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -48,6 +47,9 @@ const TabMenu = styled.div`
   @media (max-width: 768px) {
     padding: 12px;
   }
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const TabBtn = styled.button`
@@ -86,6 +88,9 @@ const ContentPanel = styled.div`
     padding: 16px;
     border-radius: 12px;
   }
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const ViewHeader = styled.div`
@@ -395,6 +400,8 @@ const ModalOverlay = styled.div`
   justify-content: center;
   align-items: center;
   padding: 20px;
+
+  ${mobileGlassFix}
 `;
 
 const ModalContent = styled.div`
@@ -466,6 +473,7 @@ const ToggleSwitch = styled.label`
 `;
 
 import ConfirmModal from '../components/ConfirmModal';
+import { mobileGlassFix, mobileSolidPanel } from '../styles/glass';
 
 const Admin = () => {
   const { profile } = useAuth();

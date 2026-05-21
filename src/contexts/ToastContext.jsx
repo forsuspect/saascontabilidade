@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, AlertTriangle, XCircle, Info, X } from 'lucide-react';
 import styled from 'styled-components';
+import { toastMotion } from '../utils/motion';
+import { mobileGlassFix } from '../styles/glass';
 
 const ToastContext = createContext(null);
 
@@ -42,6 +44,8 @@ const ToastCard = styled(motion.div)`
   color: #f8fafc;
   overflow: hidden;
   position: relative;
+
+  ${mobileGlassFix}
 `;
 
 const IconWrapper = styled.div`
@@ -138,11 +142,7 @@ export const ToastProvider = ({ children }) => {
               <ToastCard
                 key={toast.id}
                 $type={toast.type}
-                initial={{ opacity: 0, y: -20, scale: 0.9, filter: 'blur(8px)' }}
-                animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, scale: 0.9, y: -10, transition: { duration: 0.2 }, filter: 'blur(8px)' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-                layout
+                {...toastMotion()}
               >
                 <IconWrapper $type={toast.type}>
                   <Icon size={18} />

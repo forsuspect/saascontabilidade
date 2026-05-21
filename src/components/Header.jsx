@@ -3,6 +3,8 @@ import { useLocation, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import { overlayFade, drawerSlide } from '../utils/motion';
+import { mobileGlassFix } from '../styles/glass';
 import { 
   Bell, 
   Menu, 
@@ -38,6 +40,8 @@ const HeaderContainer = styled.header`
   @media (max-width: 640px) {
     padding: 0 20px;
   }
+
+  ${mobileGlassFix}
 `;
 
 const LeftSection = styled.div`
@@ -175,6 +179,8 @@ const MobileOverlay = styled(motion.div)`
   z-index: 999;
   display: flex;
   justify-content: flex-end;
+
+  ${mobileGlassFix}
 `;
 
 const MobileDrawer = styled(motion.div)`
@@ -285,16 +291,11 @@ const Header = () => {
       <AnimatePresence>
         {menuOpen && (
           <MobileOverlay
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            {...overlayFade()}
             onClick={() => setMenuOpen(false)}
           >
             <MobileDrawer
-              initial={{ x: 280 }}
-              animate={{ x: 0 }}
-              exit={{ x: 280 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              {...drawerSlide(280)}
               onClick={(e) => e.stopPropagation()}
             >
               <DrawerHeader>

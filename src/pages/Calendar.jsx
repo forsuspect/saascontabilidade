@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+import { mobileGlassFix, mobileSolidPanel } from '../styles/glass';
 import { dbService } from '../services/dbService';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -32,6 +32,9 @@ const MainPanel = styled.div`
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const SidebarPanel = styled.div`
@@ -45,6 +48,9 @@ const SidebarPanel = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const CalendarHeader = styled.div`

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { pageEnter, kpiHoverProps, kpiLiftHover } from '../utils/motion';
+import { mobileGlassFix, mobileSolidPanel } from '../styles/glass';
 import { dbService } from '../services/dbService';
 import { useAuth } from '../contexts/AuthContext';
 import { 
@@ -40,6 +42,9 @@ const KPIBlock = styled(motion.div)`
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 
   &::before {
     content: '';
@@ -108,6 +113,9 @@ const Panel = styled.div`
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const PanelHeader = styled.div`
@@ -280,9 +288,7 @@ const Dashboard = () => {
   if (profile?.role === 'client') {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        {...pageEnter()}
         style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
       >
         {/* Welcome Area */}
@@ -292,7 +298,7 @@ const Dashboard = () => {
         </Panel>
 
         <DashboardGrid>
-          <KPIBlock $color="var(--wine-red-light)" whileHover={{ y: -3 }}>
+          <KPIBlock $color="var(--wine-red-light)" {...kpiHoverProps()}>
             <KPIHeader>
               <span>Meus Documentos</span>
               <IconWrapper>
@@ -303,7 +309,7 @@ const Dashboard = () => {
             <KPIDesc>Arquivos disponíveis para download</KPIDesc>
           </KPIBlock>
 
-          <KPIBlock $color="#3b82f6" whileHover={{ y: -3 }}>
+          <KPIBlock $color="#3b82f6" {...kpiHoverProps()}>
             <KPIHeader>
               <span>Agenda / Reuniões</span>
               <IconWrapper $bg="rgba(59, 130, 246, 0.1)" $color="#3b82f6">
@@ -329,15 +335,13 @@ const Dashboard = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      {...pageEnter()}
       style={{ display: 'flex', flexDirection: 'column', gap: 24 }}
     >
       <DashboardGrid>
         <KPIBlock 
           $color="var(--wine-red-light)"
-          whileHover={{ y: -5, boxShadow: '0 8px 30px rgba(139, 30, 47, 0.15)' }}
+          {...kpiLiftHover('0 8px 30px rgba(139, 30, 47, 0.15)')}
         >
           <KPIHeader>
             <span>Clientes Ativos</span>
@@ -351,7 +355,7 @@ const Dashboard = () => {
 
         <KPIBlock 
           $color="#10b981"
-          whileHover={{ y: -5, boxShadow: '0 8px 30px rgba(16, 185, 129, 0.15)' }}
+          {...kpiLiftHover('0 8px 30px rgba(16, 185, 129, 0.15)')}
         >
           <KPIHeader>
             <span>Faturamento Bruto</span>
@@ -367,7 +371,7 @@ const Dashboard = () => {
 
         <KPIBlock 
           $color="#ef4444"
-          whileHover={{ y: -5, boxShadow: '0 8px 30px rgba(239, 68, 68, 0.15)' }}
+          {...kpiLiftHover('0 8px 30px rgba(239, 68, 68, 0.15)')}
         >
           <KPIHeader>
             <span>Despesas Operacionais</span>
@@ -383,7 +387,7 @@ const Dashboard = () => {
 
         <KPIBlock 
           $color="#3b82f6"
-          whileHover={{ y: -5, boxShadow: '0 8px 30px rgba(59, 130, 246, 0.15)' }}
+          {...kpiLiftHover('0 8px 30px rgba(59, 130, 246, 0.15)')}
         >
           <KPIHeader>
             <span>Saldo em Caixa</span>

@@ -2,6 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, X } from 'lucide-react';
+import { overlayFade, modalPop } from '../utils/motion';
+import { mobileGlassFix } from '../styles/glass';
 
 const Backdrop = styled(motion.div)`
   position: fixed;
@@ -17,6 +19,8 @@ const Backdrop = styled(motion.div)`
   align-items: center;
   justify-content: center;
   padding: 20px;
+
+  ${mobileGlassFix}
 `;
 
 const ModalBox = styled(motion.div)`
@@ -136,17 +140,12 @@ const ConfirmModal = ({
     <AnimatePresence>
       {isOpen && (
         <Backdrop
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          {...overlayFade()}
           onClick={onCancel}
         >
           <ModalBox
             onClick={(e) => e.stopPropagation()}
-            initial={{ scale: 0.9, y: 15, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.9, y: 10, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+            {...modalPop()}
           >
             <CloseBtn onClick={onCancel}>
               <X size={16} />

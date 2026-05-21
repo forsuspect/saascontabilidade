@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { cardEnter } from '../utils/motion';
+import { mobileGlassFix, mobileSolidPanel } from '../styles/glass';
 import { dbService } from '../services/dbService';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -35,6 +37,9 @@ const FormPanel = styled.div`
   padding: 24px;
   height: fit-content;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const ListPanel = styled.div`
@@ -44,6 +49,9 @@ const ListPanel = styled.div`
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+  ${mobileGlassFix}
+  ${mobileSolidPanel}
 `;
 
 const HeaderStats = styled.div`
@@ -484,11 +492,7 @@ const Employees = () => {
               {employees.map(emp => (
                 <EmployeeCard
                   key={emp.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3 }}
+                  {...cardEnter()}
                 >
                   <CardHeader>
                     <Avatar>{getInitials(emp.full_name)}</Avatar>

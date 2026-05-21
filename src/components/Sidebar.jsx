@@ -3,6 +3,8 @@ import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import { shouldUseFastMotion } from '../utils/motion';
+import { mobileGlassFix } from '../styles/glass';
 import { 
   LayoutDashboard, 
   Users, 
@@ -38,6 +40,8 @@ const SidebarContainer = styled(motion.aside)`
   @media (max-width: 640px) {
     display: none; // Hidden on mobile, mobile drawer will open
   }
+
+  ${mobileGlassFix}
 `;
 
 const LogoSection = styled.div`
@@ -278,14 +282,14 @@ const Sidebar = () => {
 
   return (
     <SidebarContainer
-      initial={{ x: -80, opacity: 0 }}
+      initial={shouldUseFastMotion() ? false : { x: -80, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      transition={shouldUseFastMotion() ? { duration: 0 } : { duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
     >
       <LogoSection>
         <LogoIcon
-          animate={{ rotate: 360 }}
-          transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
+          animate={shouldUseFastMotion() ? false : { rotate: 360 }}
+          transition={shouldUseFastMotion() ? undefined : { duration: 40, repeat: Infinity, ease: 'linear' }}
         >
           <Atom size={24} />
         </LogoIcon>

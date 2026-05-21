@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import { shouldUseFastMotion, overlayFade, modalPop } from '../utils/motion';
+import { mobileGlassFix } from '../styles/glass';
 import { Shield, Eye, EyeOff, Terminal, ShieldAlert, Cpu } from 'lucide-react';
 import { logSystemAction } from '../services/dbService';
 
@@ -35,6 +37,11 @@ const SpaceGrid = styled.div`
   @keyframes grid-scroll {
     0% { background-position: 0 0; }
     100% { background-position: 0 100px; }
+  }
+
+  @media (max-width: 768px) {
+    animation: none;
+    opacity: 0.4;
   }
 `;
 
@@ -86,6 +93,8 @@ const HUDSystemPanel = styled(motion.div)`
     padding: 28px 20px;
     border-radius: 12px;
   }
+
+  ${mobileGlassFix}
 
   &::before {
     content: '';
@@ -388,26 +397,28 @@ const Login = () => {
   return (
     <LoginContainer>
       <SpaceGrid />
-      <GlowOrb
-        animate={{
-          x: [0, 40, -40, 0],
-          y: [0, -40, 40, 0],
-          scale: [1, 1.1, 0.9, 1]
-        }}
-        transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
-      />
+      {!shouldUseFastMotion() && (
+        <GlowOrb
+          animate={{
+            x: [0, 40, -40, 0],
+            y: [0, -40, 40, 0],
+            scale: [1, 1.1, 0.9, 1]
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      )}
 
       <HUDSystemPanel
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        initial={shouldUseFastMotion() ? false : { opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.8, cubicBezier: [0.16, 1, 0.3, 1] }}
+        transition={shouldUseFastMotion() ? { duration: 0.15 } : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
         <Scanline />
 
         <HeaderTitleSection>
           <AppLogo
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 4, repeat: Infinity }}
+            animate={shouldUseFastMotion() ? false : { scale: [1, 1.05, 1] }}
+            transition={shouldUseFastMotion() ? undefined : { duration: 4, repeat: Infinity }}
           >
             <Cpu size={28} />
           </AppLogo>
@@ -491,15 +502,11 @@ const Login = () => {
       <AnimatePresence>
         {showForgotModal && (
           <InfoModalOverlay
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            {...overlayFade()}
             onClick={() => setShowForgotModal(false)}
           >
             <InfoModalContent
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
+              {...modalPop()}
               onClick={(e) => e.stopPropagation()}
             >
               <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-white)', fontSize: '1.2rem', marginBottom: '16px', fontWeight: 600 }}>Solicitar Acesso</h3>
