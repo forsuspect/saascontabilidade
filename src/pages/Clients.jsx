@@ -31,6 +31,7 @@ const Workspace = styled.div`
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
     height: auto;
+    gap: 16px;
   }
 `;
 
@@ -45,6 +46,11 @@ const SidebarPanel = styled.div`
   gap: 16px;
   height: 100%;
   overflow: hidden;
+
+  @media (max-width: 1024px) {
+    height: auto;
+    max-height: 320px;
+  }
 `;
 
 const SearchBox = styled.div`
@@ -129,6 +135,11 @@ const DetailsPanel = styled(motion.div)`
   gap: 24px;
   height: 100%;
   overflow-y: auto;
+
+  @media (max-width: 640px) {
+    padding: 20px 16px;
+    gap: 16px;
+  }
 `;
 
 const DetailHeader = styled.div`

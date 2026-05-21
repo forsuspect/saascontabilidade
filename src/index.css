@@ -59,11 +59,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
+html, body {
   background-color: var(--bg-pure);
   color: var(--text-white);
   overflow-x: hidden;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
 }
 
 /* Custom Scrollbar Styles */

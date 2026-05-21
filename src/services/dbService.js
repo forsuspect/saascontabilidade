@@ -633,15 +633,24 @@ export const dbService = {
 
     delete: async (id, filePath, fileName, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        // 1. Delete from storage bucket
-        const { error: storageErr } = await supabase.storage.from('documents').remove([filePath]);
-        if (storageErr) console.warn("Erro ao apagar arquivo no Storage, tentando apagar do banco de dados:", storageErr);
-        
-        // 2. Delete database entry
-        const { error } = await supabase.from('client_files').delete().eq('id', id);
-        if (error) throw error;
-        
-        await logSystemAction('DOC_DELETE', `Excluiu o documento: ${fileName}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+        try {
+          // 1. Delete from storage bucket
+          const { error: storageErr } = await supabase.storage.from('documents').remove([filePath]);
+          if (storageErr) console.warn("Erro ao apagar arquivo no Storage, tentando apagar do banco de dados:", storageErr);
+          
+          // 2. Delete database entry
+          const { error } = await supabase.from('client_files').delete().eq('id', id);
+          if (error) throw error;
+          
+          await logSystemAction('DOC_DELETE', `Excluiu o documento: ${fileName}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+        } catch (err) {
+          console.warn("Supabase documents.delete failed, using local fallback:", err.message);
+          // Fallback to local delete
+          let files = getLocal('saas_files');
+          files = files.filter(f => f.id !== id);
+          setLocal('saas_files', files);
+          await logSystemAction('DOC_DELETE', `Excluiu o doc no modo demo (fallback): ${fileName}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+        }
       } else {
         let files = getLocal('saas_files');
         files = files.filter(f => f.id !== id);
@@ -649,6 +658,45 @@ export const dbService = {
         
         await logSystemAction('DOC_DELETE', `Excluiu o doc no modo demo: ${fileName}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
       }
+    },
+
+    deleteAll: async (clientId, creatorProfile) => {
+      if (isSupabaseConfigured && supabase) {
+        try {
+          // Fetch all files for the client to get their storage paths
+          let query = supabase.from('client_files').select('id, file_path, name');
+          if (clientId) query = query.eq('client_id', clientId);
+          const { data: filesToDelete, error: fetchErr } = await query;
+          if (fetchErr) throw fetchErr;
+
+          if (filesToDelete && filesToDelete.length > 0) {
+            const paths = filesToDelete.map(f => f.file_path);
+            // Remove from storage
+            await supabase.storage.from('documents').remove(paths);
+            // Remove from DB
+            let delQuery = supabase.from('client_files').delete();
+            if (clientId) delQuery = delQuery.eq('client_id', clientId);
+            else delQuery = delQuery.in('id', filesToDelete.map(f => f.id));
+            const { error: delErr } = await delQuery;
+            if (delErr) throw delErr;
+          }
+
+          await logSystemAction('DOC_DELETE_ALL', `Removeu todos os documentos${clientId ? ` do cliente ${clientId}` : ''}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return;
+        } catch (err) {
+          console.warn("Supabase documents.deleteAll failed, using local fallback:", err.message);
+        }
+      }
+
+      // Local fallback
+      let files = getLocal('saas_files');
+      if (clientId) {
+        files = files.filter(f => f.client_id !== clientId);
+      } else {
+        files = [];
+      }
+      setLocal('saas_files', files);
+      await logSystemAction('DOC_DELETE_ALL', `Removeu todos os documentos no modo demo${clientId ? ` do cliente ${clientId}` : ''}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
     }
   },
 

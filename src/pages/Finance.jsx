@@ -73,6 +73,20 @@ const KPIBox = styled.div`
   }
 `;
 
+const TopBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+`;
+
 const FormTitle = styled.h3`
   font-family: var(--font-display);
   font-size: 1.1rem;
@@ -128,6 +142,11 @@ const SubmitBtn = styled.button`
 const TransactionsTableContainer = styled.div`
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  table {
+    min-width: 600px;
+  }
 `;
 
 const Table = styled.table`

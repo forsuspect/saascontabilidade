@@ -147,8 +147,15 @@ const FormGroup = styled.div`
   }
 `;
 
+const DocumentTableWrapper = styled.div`
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+`;
+
 const DocumentTable = styled.table`
   width: 100%;
+  min-width: 560px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.9rem;
@@ -263,9 +270,34 @@ const Documents = () => {
         try {
           await dbService.documents.delete(doc.id, doc.file_path, doc.name, profile);
           setDocuments(prev => prev.filter(d => d.id !== doc.id));
-          toast.success('Documento deletado.');
+          toast.success('Documento deletado com sucesso.');
         } catch (err) {
           toast.error('Erro ao deletar documento.');
+        } finally {
+          setConfirmState(prev => ({ ...prev, isOpen: false }));
+        }
+      }
+    });
+  };
+
+  const handleDeleteAll = () => {
+    if (documents.length === 0) {
+      toast.error('Não há documentos para remover.');
+      return;
+    }
+    setConfirmState({
+      isOpen: true,
+      title: 'Remover Todos os Documentos',
+      message: `Tem certeza que deseja excluir permanentemente todos os ${documents.length} documento(s) listados? Esta ação não pode ser desfeita.`,
+      onConfirm: async () => {
+        try {
+          // In client mode, delete only for the selected client
+          const clientIdFilter = profile?.role === 'client' ? 'cli-default' : null;
+          await dbService.documents.deleteAll(clientIdFilter, profile);
+          setDocuments([]);
+          toast.success(`${documents.length} documento(s) removido(s) com sucesso.`);
+        } catch (err) {
+          toast.error('Erro ao remover todos os documentos.');
         } finally {
           setConfirmState(prev => ({ ...prev, isOpen: false }));
         }
@@ -342,17 +374,38 @@ const Documents = () => {
 
         {/* Right Column - Table of Docs */}
         <MainPanel>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
             <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem' }}>Explorer de Documentos</h3>
-            <SearchBox style={{ width: 250 }}>
-              <Search size={16} />
-              <input 
-                type="text" 
-                placeholder="Buscar por nome ou cliente..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </SearchBox>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <SearchBox style={{ width: 220 }}>
+                <Search size={16} />
+                <input 
+                  type="text" 
+                  placeholder="Buscar por nome ou cliente..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </SearchBox>
+              {canDelete && documents.length > 0 && (
+                <button
+                  onClick={handleDeleteAll}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: 'rgba(239,68,68,0.1)',
+                    border: '1px solid rgba(239,68,68,0.35)',
+                    borderRadius: 8, padding: '9px 14px',
+                    color: '#f87171', fontSize: '0.8rem',
+                    fontWeight: 600, cursor: 'pointer',
+                    transition: 'all 0.2s', whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.22)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.6)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.35)'; }}
+                >
+                  <Trash2 size={14} />
+                  Remover Todos ({documents.length})
+                </button>
+              )}
+            </div>
           </div>
 
           <div style={{ width: '100%', overflowX: 'auto' }}>
@@ -387,13 +440,43 @@ const Documents = () => {
                         </div>
                       </td>
                       <td>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button onClick={() => handleDownload(doc)} style={{ color: 'var(--text-gray)', padding: 4 }} title="Download">
-                            <Download size={14} />
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button
+                            onClick={() => handleDownload(doc)}
+                            title="Baixar documento"
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 4,
+                              background: 'rgba(59,130,246,0.12)',
+                              border: '1px solid rgba(59,130,246,0.3)',
+                              borderRadius: 6, padding: '5px 10px',
+                              color: '#60a5fa', fontSize: '0.75rem',
+                              fontWeight: 600, cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(59,130,246,0.25)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(59,130,246,0.12)'}
+                          >
+                            <Download size={13} />
+                            Baixar
                           </button>
                           {canDelete && (
-                            <button onClick={() => handleDelete(doc)} style={{ color: '#ef4444', padding: 4 }} title="Excluir">
-                              <Trash2 size={14} />
+                            <button
+                              onClick={() => handleDelete(doc)}
+                              title="Excluir documento"
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: 4,
+                                background: 'rgba(239,68,68,0.1)',
+                                border: '1px solid rgba(239,68,68,0.3)',
+                                borderRadius: 6, padding: '5px 10px',
+                                color: '#f87171', fontSize: '0.75rem',
+                                fontWeight: 600, cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.22)'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+                            >
+                              <Trash2 size={13} />
+                              Excluir
                             </button>
                           )}
                         </div>

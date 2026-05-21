@@ -82,6 +82,11 @@ const HUDSystemPanel = styled(motion.div)`
   position: relative;
   overflow: hidden;
 
+  @media (max-width: 480px) {
+    padding: 28px 20px;
+    border-radius: 12px;
+  }
+
   &::before {
     content: '';
     position: absolute;
@@ -305,8 +310,8 @@ const InfoModalOverlay = styled(motion.div)`
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(8px);
   display: flex;
@@ -314,6 +319,7 @@ const InfoModalOverlay = styled(motion.div)`
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  box-sizing: border-box;
 `;
 
 const InfoModalContent = styled(motion.div)`
