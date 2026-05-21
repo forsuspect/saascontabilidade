@@ -468,7 +468,9 @@ const Kanban = () => {
                   onChange={(e) => setNewTask({...newTask, assignedTo: e.target.value})}
                 >
                   <option value="">Selecione um executor...</option>
-                  {users.map(u => (
+                  {users
+                    .filter(u => profile?.role === 'developer' ? true : u.role !== 'developer')
+                    .map(u => (
                     <option key={u.id} value={u.id}>{u.full_name} (@{u.username})</option>
                   ))}
                 </select>

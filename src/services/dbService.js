@@ -283,6 +283,33 @@ export const dbService = {
           
           if (error) throw error;
           
+          // Ensure local fallback in case Supabase trigger for profiles is missing
+          const profiles = getLocal('saas_profiles');
+          if (!profiles.some(p => p.username.toLowerCase() === username.toLowerCase())) {
+            const newId = data?.user?.id || ('usr-' + Math.random().toString(36).substr(2, 9));
+            const newProfile = { id: newId, username: username.toLowerCase(), full_name: fullName, role, avatar_url: '' };
+            profiles.push(newProfile);
+            setLocal('saas_profiles', profiles);
+
+            if (['developer', 'owner', 'employee'].includes(role)) {
+              const employees = getLocal('saas_employees');
+              if (!employees.some(e => e.username.toLowerCase() === username.toLowerCase())) {
+                employees.push({
+                  id: 'emp-' + Math.random().toString(36).substr(2, 9),
+                  profile_id: newId,
+                  full_name: fullName,
+                  username: username.toLowerCase(),
+                  role,
+                  salary: role === 'owner' ? 20000.00 : role === 'developer' ? 18000.00 : 3800.00,
+                  position: role === 'owner' ? 'Sócio-Fundador' : role === 'developer' ? 'Senior Developer' : 'Analista Contábil',
+                  admission_date: new Date().toISOString().split('T')[0],
+                  status: 'active'
+                });
+                setLocal('saas_employees', employees);
+              }
+            }
+          }
+
           await logSystemAction('USER_CREATE', `Registrou novo usuário: ${username} (${role})`, creatorProfile?.id, creatorProfile?.role, creatorProfile?.username);
           return data;
         } catch (supabaseError) {
@@ -371,76 +398,101 @@ export const dbService = {
   // ==========================================
   clients: {
     getAll: async () => {
+      let mergedData = [];
       if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.from('clients').select('*').order('name', { ascending: true });
-        if (error) throw error;
-        return data;
-      } else {
-        return getLocal('saas_clients').sort((a, b) => a.name.localeCompare(b.name));
+        try {
+          const { data, error } = await supabase.from('clients').select('*').order('name', { ascending: true });
+          if (error) throw error;
+          mergedData = [...data];
+        } catch (err) {
+          console.warn("Supabase clients.getAll failed, using local fallback:", err.message);
+        }
       }
+      
+      const localData = getLocal('saas_clients');
+      localData.forEach(localItem => {
+        if (!mergedData.some(m => m.id === localItem.id)) {
+          mergedData.push(localItem);
+        }
+      });
+      
+      return mergedData.sort((a, b) => a.name.localeCompare(b.name));
     },
     
     create: async (clientData, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.from('clients').insert([{
-          ...clientData,
-          created_by: creatorProfile.id
-        }]).select();
-        
-        if (error) throw error;
-        await logSystemAction('CLIENT_CREATE', `Criou o cliente: ${clientData.name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return data[0];
-      } else {
-        const clients = getLocal('saas_clients');
-        const newClient = {
-          id: 'cli-' + Math.random().toString(36).substr(2, 9),
-          ...clientData,
-          created_at: new Date().toISOString()
-        };
-        clients.push(newClient);
-        setLocal('saas_clients', clients);
-        
-        await logSystemAction('CLIENT_CREATE', `Criou o cliente no modo demo: ${clientData.name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return newClient;
+        try {
+          const { data, error } = await supabase.from('clients').insert([{
+            ...clientData,
+            created_by: creatorProfile.id
+          }]).select();
+          
+          if (error) throw error;
+          await logSystemAction('CLIENT_CREATE', `Criou o cliente: ${clientData.name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return data[0];
+        } catch (err) {
+          console.warn("Supabase clients.create failed, using local fallback:", err.message);
+        }
       }
+      
+      const clients = getLocal('saas_clients');
+      const newClient = {
+        id: 'cli-' + Math.random().toString(36).substr(2, 9),
+        ...clientData,
+        created_at: new Date().toISOString()
+      };
+      clients.push(newClient);
+      setLocal('saas_clients', clients);
+      
+      await logSystemAction('CLIENT_CREATE', `Criou o cliente no modo demo: ${clientData.name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+      return newClient;
     },
 
     update: async (id, clientData, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.from('clients').update(clientData).eq('id', id).select();
-        if (error) throw error;
-        await logSystemAction('CLIENT_UPDATE', `Atualizou dados do cliente: ${clientData.name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return data[0];
-      } else {
-        const clients = getLocal('saas_clients');
-        const index = clients.findIndex(c => c.id === id);
-        if (index === -1) throw new Error('Cliente não encontrado.');
-        
-        clients[index] = { ...clients[index], ...clientData, updated_at: new Date().toISOString() };
-        setLocal('saas_clients', clients);
-        
-        await logSystemAction('CLIENT_UPDATE', `Atualizou cliente no modo demo: ${clientData.name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return clients[index];
+        try {
+          const { data, error } = await supabase.from('clients').update(clientData).eq('id', id).select();
+          if (error) throw error;
+          await logSystemAction('CLIENT_UPDATE', `Atualizou dados do cliente: ${clientData.name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return data[0];
+        } catch (err) {
+          console.warn("Supabase clients.update failed, using local fallback:", err.message);
+        }
       }
+      
+      const clients = getLocal('saas_clients');
+      const index = clients.findIndex(c => c.id === id);
+      if (index === -1) throw new Error('Cliente não encontrado.');
+      
+      clients[index] = { ...clients[index], ...clientData, updated_at: new Date().toISOString() };
+      setLocal('saas_clients', clients);
+      
+      await logSystemAction('CLIENT_UPDATE', `Atualizou cliente no modo demo: ${clientData.name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+      return clients[index];
     },
 
     delete: async (id, name, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.from('clients').delete().eq('id', id);
-        if (error) throw error;
-        await logSystemAction('CLIENT_DELETE', `Excluiu o cliente: ${name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-      } else {
-        let clients = getLocal('saas_clients');
-        clients = clients.filter(c => c.id !== id);
-        setLocal('saas_clients', clients);
-        
-        // Cascade delete local files for that client
-        let files = getLocal('saas_files');
-        files = files.filter(f => f.client_id !== id);
-        setLocal('saas_files', files);
-        
-        await logSystemAction('CLIENT_DELETE', `Excluiu o cliente no modo demo: ${name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+        try {
+          const { error } = await supabase.from('clients').delete().eq('id', id);
+          if (error) throw error;
+          await logSystemAction('CLIENT_DELETE', `Excluiu o cliente: ${name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return;
+        } catch (err) {
+          console.warn("Supabase clients.delete failed, using local fallback:", err.message);
+        }
       }
+      
+      let clients = getLocal('saas_clients');
+      clients = clients.filter(c => c.id !== id);
+      setLocal('saas_clients', clients);
+      
+      // Cascade delete local files for that client
+      let files = getLocal('saas_files');
+      files = files.filter(f => f.client_id !== id);
+      setLocal('saas_files', files);
+      
+      await logSystemAction('CLIENT_DELETE', `Excluiu o cliente no modo demo: ${name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
     }
   },
 
@@ -579,51 +631,72 @@ export const dbService = {
   // ==========================================
   financial: {
     getAll: async () => {
+      let mergedData = [];
       if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.from('financial_transactions').select('*').order('date', { ascending: false });
-        if (error) throw error;
-        return data;
-      } else {
-        return getLocal('saas_financials').sort((a, b) => new Date(b.date) - new Date(a.date));
+        try {
+          const { data, error } = await supabase.from('financial_transactions').select('*').order('date', { ascending: false });
+          if (error) throw error;
+          mergedData = [...data];
+        } catch (err) {
+          console.warn("Supabase financial.getAll failed, using local fallback:", err.message);
+        }
       }
+      
+      const localData = getLocal('saas_financials');
+      localData.forEach(localItem => {
+        if (!mergedData.some(m => m.id === localItem.id)) {
+          mergedData.push(localItem);
+        }
+      });
+      
+      return mergedData.sort((a, b) => new Date(b.date) - new Date(a.date));
     },
 
     create: async (transactionData, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.from('financial_transactions').insert([{
-          ...transactionData,
-          created_by: creatorProfile.id
-        }]).select();
-        
-        if (error) throw error;
-        await logSystemAction('FIN_CREATE', `Criou transação: ${transactionData.description} (R$ ${transactionData.amount})`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return data[0];
-      } else {
-        const financials = getLocal('saas_financials');
-        const newFin = {
-          id: 'fin-' + Math.random().toString(36).substr(2, 9),
-          ...transactionData,
-          created_at: new Date().toISOString()
-        };
-        financials.push(newFin);
-        setLocal('saas_financials', financials);
-        
-        await logSystemAction('FIN_CREATE', `Transação modo demo: ${transactionData.description} (R$ ${transactionData.amount})`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return newFin;
+        try {
+          const { data, error } = await supabase.from('financial_transactions').insert([{
+            ...transactionData,
+            created_by: creatorProfile.id
+          }]).select();
+          
+          if (error) throw error;
+          await logSystemAction('FIN_CREATE', `Criou transação: ${transactionData.description} (R$ ${transactionData.amount})`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return data[0];
+        } catch (err) {
+          console.warn("Supabase financial.create failed, using local fallback:", err.message);
+        }
       }
+      
+      const financials = getLocal('saas_financials');
+      const newFin = {
+        id: 'fin-' + Math.random().toString(36).substr(2, 9),
+        ...transactionData,
+        created_at: new Date().toISOString()
+      };
+      financials.push(newFin);
+      setLocal('saas_financials', financials);
+      
+      await logSystemAction('FIN_CREATE', `Transação modo demo: ${transactionData.description} (R$ ${transactionData.amount})`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+      return newFin;
     },
 
     delete: async (id, desc, amount, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.from('financial_transactions').delete().eq('id', id);
-        if (error) throw error;
-        await logSystemAction('FIN_DELETE', `Excluiu transação: ${desc} (R$ ${amount})`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-      } else {
-        let financials = getLocal('saas_financials');
-        financials = financials.filter(f => f.id !== id);
-        setLocal('saas_financials', financials);
-        await logSystemAction('FIN_DELETE', `Excluiu transação no modo demo: ${desc}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+        try {
+          const { error } = await supabase.from('financial_transactions').delete().eq('id', id);
+          if (error) throw error;
+          await logSystemAction('FIN_DELETE', `Excluiu transação: ${desc} (R$ ${amount})`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return;
+        } catch (err) {
+          console.warn("Supabase financial.delete failed, using local fallback:", err.message);
+        }
       }
+      
+      let financials = getLocal('saas_financials');
+      financials = financials.filter(f => f.id !== id);
+      setLocal('saas_financials', financials);
+      await logSystemAction('FIN_DELETE', `Excluiu transação no modo demo: ${desc}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
     }
   },
 
@@ -632,29 +705,46 @@ export const dbService = {
   // ==========================================
   employees: {
     getAll: async () => {
+      let mergedData = [];
       if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.from('employees').select('*').order('full_name', { ascending: true });
-        if (error) throw error;
-        return data;
-      } else {
-        return getLocal('saas_employees').sort((a, b) => a.full_name.localeCompare(b.full_name));
+        try {
+          const { data, error } = await supabase.from('employees').select('*').order('full_name', { ascending: true });
+          if (error) throw error;
+          mergedData = [...data];
+        } catch (err) {
+          console.warn("Supabase employees.getAll failed, using local fallback:", err.message);
+        }
       }
+      
+      const localData = getLocal('saas_employees');
+      localData.forEach(localItem => {
+        if (!mergedData.some(m => m.id === localItem.id)) {
+          mergedData.push(localItem);
+        }
+      });
+      
+      return mergedData.sort((a, b) => a.full_name.localeCompare(b.full_name));
     },
 
     update: async (id, employeeData, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        // First check if role needs to be synced in profile
-        const { data: currentEmp } = await supabase.from('employees').select('profile_id').eq('id', id).single();
-        if (currentEmp?.profile_id && employeeData.role) {
-          await supabase.from('profiles').update({ role: employeeData.role }).eq('id', currentEmp.profile_id);
-        }
+        try {
+          // First check if role needs to be synced in profile
+          const { data: currentEmp } = await supabase.from('employees').select('profile_id').eq('id', id).single();
+          if (currentEmp?.profile_id && employeeData.role) {
+            await supabase.from('profiles').update({ role: employeeData.role }).eq('id', currentEmp.profile_id);
+          }
 
-        const { data, error } = await supabase.from('employees').update(employeeData).eq('id', id).select();
-        if (error) throw error;
-        await logSystemAction('EMP_UPDATE', `Atualizou dados de colaborador: ${employeeData.full_name || id}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return data[0];
-      } else {
-        const employees = getLocal('saas_employees');
+          const { data, error } = await supabase.from('employees').update(employeeData).eq('id', id).select();
+          if (error) throw error;
+          await logSystemAction('EMP_UPDATE', `Atualizou dados de colaborador: ${employeeData.full_name || id}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return data[0];
+        } catch (err) {
+          console.warn("Supabase employees.update failed, using local fallback:", err.message);
+        }
+      }
+      
+      const employees = getLocal('saas_employees');
         const index = employees.findIndex(e => e.id === id);
         if (index === -1) throw new Error('Colaborador não encontrado.');
         
@@ -673,27 +763,29 @@ export const dbService = {
         
         await logSystemAction('EMP_UPDATE', `Atualizou colaborador no modo demo: ${employees[index].full_name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
         return employees[index];
-      }
     },
 
     delete: async (id, name, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        // Find profile id to delete the auth user as well in full mode
-        const { data: emp } = await supabase.from('employees').select('profile_id').eq('id', id).single();
-        
-        const { error } = await supabase.from('employees').delete().eq('id', id);
-        if (error) throw error;
-        
-        if (emp?.profile_id) {
-          // Profile delete is cascading or handled. Wait, deleting auth.users is admin only, typically done via triggers or direct API.
-          // Since profile has cascade relation on auth.users (foreign key), delete on auth.users triggers deletion in profile.
-          // We can delete profile row and let the admin delete the auth user manually or via edge.
-          await supabase.from('profiles').delete().eq('id', emp.profile_id);
+        try {
+          // Find profile id to delete the auth user as well in full mode
+          const { data: emp } = await supabase.from('employees').select('profile_id').eq('id', id).single();
+          
+          const { error } = await supabase.from('employees').delete().eq('id', id);
+          if (error) throw error;
+          
+          if (emp?.profile_id) {
+            await supabase.from('profiles').delete().eq('id', emp.profile_id);
+          }
+          
+          await logSystemAction('EMP_DELETE', `Excluiu colaborador: ${name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return;
+        } catch (err) {
+          console.warn("Supabase employees.delete failed, using local fallback:", err.message);
         }
-        
-        await logSystemAction('EMP_DELETE', `Excluiu colaborador: ${name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-      } else {
-        const employees = getLocal('saas_employees');
+      }
+      
+      const employees = getLocal('saas_employees');
         const emp = employees.find(e => e.id === id);
         
         const filteredEmployees = employees.filter(e => e.id !== id);
@@ -710,7 +802,6 @@ export const dbService = {
         }
         
         await logSystemAction('EMP_DELETE', `Excluiu colaborador no modo demo: ${name}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-      }
     }
   },
 
@@ -719,17 +810,25 @@ export const dbService = {
   // ==========================================
   events: {
     getAll: async () => {
+      let mergedData = [];
       if (isSupabaseConfigured && supabase) {
         try {
           const { data, error } = await supabase.from('events').select('*').order('start_time', { ascending: true });
           if (error) throw error;
-          return data;
+          mergedData = [...data];
         } catch (err) {
           console.warn("Supabase events.getAll failed, using local fallback:", err.message);
         }
       }
       
-      return getLocal('saas_events').sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+      const localData = getLocal('saas_events');
+      localData.forEach(localItem => {
+        if (!mergedData.some(m => m.id === localItem.id)) {
+          mergedData.push(localItem);
+        }
+      });
+      
+      return mergedData.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
     },
 
     create: async (eventData, creatorProfile) => {
@@ -763,34 +862,43 @@ export const dbService = {
 
     update: async (id, eventData, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.from('events').update(eventData).eq('id', id).select();
-        if (error) throw error;
-        await logSystemAction('EVT_UPDATE', `Atualizou evento: ${eventData.title || id}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return data[0];
-      } else {
-        const events = getLocal('saas_events');
-        const index = events.findIndex(e => e.id === id);
-        if (index === -1) throw new Error('Evento não encontrado.');
-        
-        events[index] = { ...events[index], ...eventData };
-        setLocal('saas_events', events);
-        
-        await logSystemAction('EVT_UPDATE', `Atualizou evento no modo demo: ${events[index].title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return events[index];
+        try {
+          const { data, error } = await supabase.from('events').update(eventData).eq('id', id).select();
+          if (error) throw error;
+          await logSystemAction('EVT_UPDATE', `Atualizou evento: ${eventData.title || id}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return data[0];
+        } catch (err) {
+          console.warn("Supabase events.update failed, using local fallback:", err.message);
+        }
       }
+      
+      const events = getLocal('saas_events');
+      const index = events.findIndex(e => e.id === id);
+      if (index === -1) throw new Error('Evento não encontrado.');
+      
+      events[index] = { ...events[index], ...eventData };
+      setLocal('saas_events', events);
+      
+      await logSystemAction('EVT_UPDATE', `Atualizou evento no modo demo: ${events[index].title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+      return events[index];
     },
 
     delete: async (id, title, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.from('events').delete().eq('id', id);
-        if (error) throw error;
-        await logSystemAction('EVT_DELETE', `Apagou o evento: ${title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-      } else {
-        let events = getLocal('saas_events');
-        events = events.filter(e => e.id !== id);
-        setLocal('saas_events', events);
-        await logSystemAction('EVT_DELETE', `Apagou o evento no modo demo: ${title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+        try {
+          const { error } = await supabase.from('events').delete().eq('id', id);
+          if (error) throw error;
+          await logSystemAction('EVT_DELETE', `Apagou o evento: ${title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return;
+        } catch (err) {
+          console.warn("Supabase events.delete failed, using local fallback:", err.message);
+        }
       }
+      
+      let events = getLocal('saas_events');
+      events = events.filter(e => e.id !== id);
+      setLocal('saas_events', events);
+      await logSystemAction('EVT_DELETE', `Apagou o evento no modo demo: ${title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
     }
   },
 
@@ -799,79 +907,104 @@ export const dbService = {
   // ==========================================
   tasks: {
     getAll: async () => {
+      let mergedData = [];
       if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.from('tasks').select('*').order('created_at', { ascending: true });
-        if (error) throw error;
-        return data;
-      } else {
-        return getLocal('saas_tasks');
+        try {
+          const { data, error } = await supabase.from('tasks').select('*').order('created_at', { ascending: true });
+          if (error) throw error;
+          mergedData = [...data];
+        } catch (err) {
+          console.warn("Supabase tasks.getAll failed, using local fallback:", err.message);
+        }
       }
+      
+      const localData = getLocal('saas_tasks');
+      localData.forEach(localItem => {
+        if (!mergedData.some(m => m.id === localItem.id)) {
+          mergedData.push(localItem);
+        }
+      });
+      
+      return mergedData;
     },
 
     create: async (taskData, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.from('tasks').insert([{
-          ...taskData,
-          created_by: creatorProfile.id
-        }]).select();
-        
-        if (error) throw error;
-        await logSystemAction('TSK_CREATE', `Criou tarefa: ${taskData.title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return data[0];
-      } else {
-        const tasks = getLocal('saas_tasks');
-        const newTsk = {
-          id: 'tsk-' + Math.random().toString(36).substr(2, 9),
-          ...taskData,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        tasks.push(newTsk);
-        setLocal('saas_tasks', tasks);
-        
-        await logSystemAction('TSK_CREATE', `Tarefa no modo demo: ${taskData.title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return newTsk;
+        try {
+          const { data, error } = await supabase.from('tasks').insert([{
+            ...taskData,
+            created_by: creatorProfile.id
+          }]).select();
+          
+          if (error) throw error;
+          await logSystemAction('TSK_CREATE', `Criou tarefa: ${taskData.title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return data[0];
+        } catch (err) {
+          console.warn("Supabase tasks.create failed, using local fallback:", err.message);
+        }
       }
+      
+      const tasks = getLocal('saas_tasks');
+      const newTsk = {
+        id: 'tsk-' + Math.random().toString(36).substr(2, 9),
+        ...taskData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      tasks.push(newTsk);
+      setLocal('saas_tasks', tasks);
+      
+      await logSystemAction('TSK_CREATE', `Tarefa no modo demo: ${taskData.title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+      return newTsk;
     },
 
     update: async (id, taskData, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.from('tasks').update({
-          ...taskData,
-          updated_at: new Date().toISOString()
-        }).eq('id', id).select();
-        
-        if (error) throw error;
-        await logSystemAction('TSK_UPDATE', `Atualizou tarefa: ${taskData.title || id} (Status: ${taskData.status || 'sem alteração'})`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return data[0];
-      } else {
-        const tasks = getLocal('saas_tasks');
-        const index = tasks.findIndex(t => t.id === id);
-        if (index === -1) throw new Error('Tarefa não encontrada.');
-        
-        tasks[index] = { 
-          ...tasks[index], 
-          ...taskData, 
-          updated_at: new Date().toISOString() 
-        };
-        setLocal('saas_tasks', tasks);
-        
-        await logSystemAction('TSK_UPDATE', `Atualizou tarefa no modo demo: ${tasks[index].title} (Status: ${tasks[index].status})`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-        return tasks[index];
+        try {
+          const { data, error } = await supabase.from('tasks').update({
+            ...taskData,
+            updated_at: new Date().toISOString()
+          }).eq('id', id).select();
+          
+          if (error) throw error;
+          await logSystemAction('TSK_UPDATE', `Atualizou tarefa: ${taskData.title || id} (Status: ${taskData.status || 'sem alteração'})`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return data[0];
+        } catch (err) {
+          console.warn("Supabase tasks.update failed, using local fallback:", err.message);
+        }
       }
+      
+      const tasks = getLocal('saas_tasks');
+      const index = tasks.findIndex(t => t.id === id);
+      if (index === -1) throw new Error('Tarefa não encontrada.');
+      
+      tasks[index] = { 
+        ...tasks[index], 
+        ...taskData, 
+        updated_at: new Date().toISOString() 
+      };
+      setLocal('saas_tasks', tasks);
+      
+      await logSystemAction('TSK_UPDATE', `Atualizou tarefa no modo demo: ${tasks[index].title} (Status: ${tasks[index].status})`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+      return tasks[index];
     },
 
     delete: async (id, title, creatorProfile) => {
       if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.from('tasks').delete().eq('id', id);
-        if (error) throw error;
-        await logSystemAction('TSK_DELETE', `Apagou a tarefa: ${title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
-      } else {
-        let tasks = getLocal('saas_tasks');
-        tasks = tasks.filter(t => t.id !== id);
-        setLocal('saas_tasks', tasks);
-        await logSystemAction('TSK_DELETE', `Apagou a tarefa no modo demo: ${title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+        try {
+          const { error } = await supabase.from('tasks').delete().eq('id', id);
+          if (error) throw error;
+          await logSystemAction('TSK_DELETE', `Apagou a tarefa: ${title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
+          return;
+        } catch (err) {
+          console.warn("Supabase tasks.delete failed, using local fallback:", err.message);
+        }
       }
+      
+      let tasks = getLocal('saas_tasks');
+      tasks = tasks.filter(t => t.id !== id);
+      setLocal('saas_tasks', tasks);
+      await logSystemAction('TSK_DELETE', `Apagou a tarefa no modo demo: ${title}`, creatorProfile.id, creatorProfile.role, creatorProfile.username);
     }
   },
 
